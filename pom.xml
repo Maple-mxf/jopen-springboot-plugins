@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+		 
+    <modelVersion>4.0.0</modelVersion>
+
+    <artifactId>jopen-springboot-plugins</artifactId>
+    <groupId>io.jopen</groupId>
+    <version>1.0</version>
+
+    <packaging>pom</packaging>
+
+    <modules>
+        <module>jopen-springboot-plugin-aop</module>
+        <module>jopen-springboot-plugin-limit</module>
+        <module>jopen-springboot-plugin-annotation-cache</module>
+        <module>jopen-springboot-plugin-common</module>
+        <module>jopen-springboot-plugin-param-test</module>
+        <module>jopen-springboot-plugin-mongo-extension</module>
+        <module>jopen-springboot-plugin-init</module>
+        <module>jopen-springboot-plugin-encryption</module>
+        <module>jopen-springboot-plugin-all</module>
+        <module>jopen-springboot-plugin-auth</module>
+        <module>jopen-springboot-plugin-quartz</module>
+        <module>jopen-springboot-plugin-idempotency</module>
+        <module>jopen-springboot-plugin-office</module>
+        <module>jopen-springboot-plugin-email</module>
+    </modules>
+
+    <distributionManagement>
+        <repository>
+            <id>rdc-releases</id>
+            <url>https://repo.rdc.aliyun.com/repository/121157-release-OFkD4F/</url>
+        </repository>
+        <snapshotRepository>
+            <id>rdc-snapshots</id>
+            <url>https://repo.rdc.aliyun.com/repository/121157-snapshot-TEN1y1/</url>
+        </snapshotRepository>
+    </distributionManagement>
+	    <dependencyManagement>
+        <dependencies>
+            <dependency>
+                <groupId>com.google.guava</groupId>
+                <artifactId>guava</artifactId>
+                <version>28.1-jre</version>
+            </dependency>
+        </dependencies>
+    </dependencyManagement>
+
+
+</project>
