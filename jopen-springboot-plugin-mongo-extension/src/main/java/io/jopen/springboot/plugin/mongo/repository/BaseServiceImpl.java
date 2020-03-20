@@ -15,6 +15,7 @@ import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.data.mongodb.gridfs.GridFsTemplate;
 import org.springframework.data.mongodb.repository.query.MongoEntityInformation;
 import org.springframework.data.repository.NoRepositoryBean;
+import org.springframework.data.repository.core.EntityInformation;
 import org.springframework.util.StreamUtils;
 
 import java.io.IOException;
@@ -282,5 +283,9 @@ public class BaseServiceImpl<ID extends Serializable, T, R extends BaseRepositor
     @Override
     public List<IndexInfo> getIndexInfo() {
         return this.repository.getIndexInfo();
+    }
+
+    public EntityInformation<T, ID> getEntityInformation() {
+        return this.repository.getEntityInformation();
     }
 }

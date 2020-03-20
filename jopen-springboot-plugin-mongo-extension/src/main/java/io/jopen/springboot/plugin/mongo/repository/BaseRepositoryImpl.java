@@ -1,5 +1,6 @@
 package io.jopen.springboot.plugin.mongo.repository;
 
+import com.mongodb.client.result.UpdateResult;
 import io.jopen.springboot.plugin.mongo.template.builder.AggregationBuilder;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -13,6 +14,7 @@ import org.springframework.data.mongodb.core.index.IndexInfo;
 import org.springframework.data.mongodb.core.mapreduce.MapReduceResults;
 import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
+import org.springframework.data.mongodb.core.query.Update;
 import org.springframework.data.mongodb.repository.query.MongoEntityInformation;
 import org.springframework.data.mongodb.repository.support.SimpleMongoRepository;
 import org.springframework.data.repository.NoRepositoryBean;
@@ -31,7 +33,6 @@ import java.util.Optional;
 public class BaseRepositoryImpl<T, ID extends Serializable>
         extends SimpleMongoRepository<T, ID>
         implements BaseRepository<T, ID> {
-
 
     private final MongoOperations mongoOperations;
 
@@ -137,5 +138,21 @@ public class BaseRepositoryImpl<T, ID extends Serializable>
     @Override
     public List<IndexInfo> getIndexInfo() {
         return this.mongoOperations.indexOps(this.entityInformation.getJavaType()).getIndexInfo();
+    }
+
+    @Override
+    public <S extends T> UpdateResult update(S entity) {
+        ID id = this.entityInformation.getId(entity);
+        if (id == null) throw new IllegalArgumentException("BaseRepository update method id param is require");
+
+        Query query = new Query();
+        query.addCriteria(Criteria.where(entityInformation.getIdAttribute()).is(id));
+
+        Update update = new Update();
+        entityInformation.getJavaType()
+        update.addToSet()
+
+        mongoOperations.updateFirst()
+        return null;
     }
 }

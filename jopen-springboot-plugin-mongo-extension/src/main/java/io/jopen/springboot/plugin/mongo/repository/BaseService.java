@@ -10,6 +10,7 @@ import org.springframework.data.mongodb.core.mapreduce.MapReduceResults;
 import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.data.repository.NoRepositoryBean;
+import org.springframework.data.repository.core.EntityInformation;
 
 import java.util.List;
 import java.util.Map;
@@ -119,5 +120,11 @@ public interface BaseService<ID, T> {
 
     List<IndexInfo> getIndexInfo();
 
+    /**
+     * 获取mongo实体的信息
+     *
+     * @return
+     */
+    EntityInformation<T, ID> getEntityInformation();
 
 }

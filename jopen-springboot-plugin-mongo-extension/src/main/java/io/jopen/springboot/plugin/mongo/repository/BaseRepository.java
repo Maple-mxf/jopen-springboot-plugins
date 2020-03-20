@@ -1,5 +1,6 @@
 package io.jopen.springboot.plugin.mongo.repository;
 
+import com.mongodb.client.result.UpdateResult;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
@@ -57,13 +58,8 @@ public interface BaseRepository<T, ID extends Serializable> extends MongoReposit
 
     List<IndexInfo> getIndexInfo();
 
-//    boolean update(Wrapper<T> updateWrapper);
-//
-//    boolean update(T entity, Wrapper<T> updateWrapper);
-//
-//    boolean updateById(T entity);
-//
-//    boolean updateBatchById(Collection<T> entityList);
-//
-//    boolean updateBatchById(Collection<T> entityList, int batchSize);
+    /**
+     * update an entity by id
+     */
+    <S extends T> UpdateResult update(S entity);
 }
