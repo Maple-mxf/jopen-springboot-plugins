@@ -2,6 +2,7 @@ package io.jopen.springboot.plugin.mongo.repository;
 
 import com.google.common.collect.Lists;
 import com.mongodb.client.gridfs.model.GridFSFile;
+import com.mongodb.client.result.UpdateResult;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Example;
 import org.springframework.data.domain.Page;
@@ -287,5 +288,10 @@ public class BaseServiceImpl<ID extends Serializable, T, R extends BaseRepositor
 
     public EntityInformation<T, ID> getEntityInformation() {
         return this.repository.getEntityInformation();
+    }
+
+    @Override
+    public <S extends T> UpdateResult update(S entity) {
+        return repository.update(entity);
     }
 }

@@ -2,6 +2,8 @@ package io.jopen.springboot.plugin.mongo.repository;
 
 import com.mongodb.client.result.UpdateResult;
 import io.jopen.springboot.plugin.mongo.template.builder.AggregationBuilder;
+import org.checkerframework.checker.nullness.qual.NonNull;
+import org.springframework.data.annotation.Transient;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
@@ -21,9 +23,9 @@ import org.springframework.data.repository.NoRepositoryBean;
 import org.springframework.data.repository.support.PageableExecutionUtils;
 
 import java.io.Serializable;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.lang.reflect.Field;
+import java.lang.reflect.Modifier;
+import java.util.*;
 
 /**
  * @author maxuefeng
@@ -37,6 +39,8 @@ public class BaseRepositoryImpl<T, ID extends Serializable>
     private final MongoOperations mongoOperations;
 
     private final MongoEntityInformation<T, ID> entityInformation;
+
+    private List<Field> entityField;
 
     public MongoEntityInformation<T, ID> getEntityInformation() {
         return this.entityInformation;
@@ -149,10 +153,49 @@ public class BaseRepositoryImpl<T, ID extends Serializable>
         query.addCriteria(Criteria.where(entityInformation.getIdAttribute()).is(id));
 
         Update update = new Update();
-        entityInformation.getJavaType()
-        update.addToSet()
+        List<Field> fields = getEntityField();
 
-        mongoOperations.updateFirst()
-        return null;
+        fields.forEach(field -> {
+            try {
+                Object value = field.get(entity);
+                if (value != null) update.set(getDBFieldName(field), value);
+            } catch (IllegalAccessException e) {
+                e.printStackTrace();
+                throw new RuntimeException(e.getMessage());
+            }
+        });
+        return mongoOperations.updateFirst(query, update, entityInformation.getJavaType());
+    }
+
+    private List<Field> getEntityField() {
+        if (this.entityField == null) {
+            synchronized (this) {
+                this.entityField = getFields(this.entityInformation.getJavaType());
+            }
+        }
+        return this.entityField;
+    }
+
+    private List<Field> getFields(@NonNull Class<?> type) {
+        List<Field> fieldList = new ArrayList<>();
+        for (; type != Object.class; type = type.getSuperclass()) {
+            Field[] fields = type.getDeclaredFields();
+            for (Field field : fields) {
+                int mod = field.getModifiers();
+                if (Modifier.isStatic(mod)) continue;
+                Transient annotation = field.getDeclaredAnnotation(Transient.class);
+                if (annotation != null) continue;
+                field.setAccessible(true);
+                fieldList.add(field);
+            }
+        }
+        return fieldList;
+    }
+
+    private String getDBFieldName(Field field) {
+        org.springframework.data.mongodb.core.mapping.Field annotation
+                = field.getDeclaredAnnotation(org.springframework.data.mongodb.core.mapping.Field.class);
+        if (annotation != null) return annotation.value();
+        return field.getName();
     }
 }
