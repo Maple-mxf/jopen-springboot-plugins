@@ -26,6 +26,7 @@
         <module>jopen-springboot-plugin-idempotency</module>
         <module>jopen-springboot-plugin-office</module>
         <module>jopen-springboot-plugin-email</module>
+        <module>jopen-springboot-plugin-mongo-quartz</module>
     </modules>
 
     <distributionManagement>
