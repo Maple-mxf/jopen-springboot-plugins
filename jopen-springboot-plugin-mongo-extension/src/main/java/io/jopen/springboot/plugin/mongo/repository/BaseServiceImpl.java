@@ -24,6 +24,7 @@ import java.io.InputStream;
 import java.io.Serializable;
 import java.util.*;
 import java.util.stream.Stream;
+import java.util.stream.StreamSupport;
 
 /**
  * @author maxuefeng
@@ -54,10 +55,7 @@ public class BaseServiceImpl<ID extends Serializable, T, R extends BaseRepositor
 
     @Override
     public <S extends T> Stream<S> stream(Example<S> example) {
-        Iterable<S> iterable = this.list(example);
-        Collection<S> entities = Lists.newArrayList();
-        iterable.iterator().forEachRemaining(entities::add);
-        return entities.stream();
+        return this.list(example).stream();
     }
 
     @Override
@@ -183,10 +181,8 @@ public class BaseServiceImpl<ID extends Serializable, T, R extends BaseRepositor
 
     @Override
     public <S extends T> Stream<S> stream(Query query) {
-        Iterable<T> list = this.list(query);
-        Collection<T> objects = new ArrayList<>();
-        list.forEach(objects::add);
-        return (Stream<S>) objects.stream();
+        Iterable<S>  iterable= this.list(query);
+        return StreamSupport.stream(iterable.spliterator(), false);
     }
 
     @Override

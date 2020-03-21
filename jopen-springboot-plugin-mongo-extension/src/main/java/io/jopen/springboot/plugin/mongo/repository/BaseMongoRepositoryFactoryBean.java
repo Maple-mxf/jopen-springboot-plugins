@@ -16,6 +16,7 @@ import java.io.Serializable;
 import static org.springframework.data.querydsl.QuerydslUtils.QUERY_DSL_PRESENT;
 
 /**
+ * @see org.springframework.boot.autoconfigure.mongo.MongoAutoConfiguration
  * @author maxuefeng
  * @since 2020/2/9
  */

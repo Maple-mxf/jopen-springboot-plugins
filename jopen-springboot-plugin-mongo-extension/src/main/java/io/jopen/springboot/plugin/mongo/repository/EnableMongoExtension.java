@@ -1,4 +1,4 @@
-package io.jopen.springboot.plugin.mongo;
+package io.jopen.springboot.plugin.mongo.repository;
 
 import java.lang.annotation.*;
 

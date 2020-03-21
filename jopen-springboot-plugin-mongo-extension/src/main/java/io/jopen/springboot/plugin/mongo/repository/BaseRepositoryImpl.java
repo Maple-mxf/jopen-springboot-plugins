@@ -2,21 +2,26 @@ package io.jopen.springboot.plugin.mongo.repository;
 
 import com.mongodb.client.result.UpdateResult;
 import io.jopen.springboot.plugin.mongo.template.builder.AggregationBuilder;
-import org.checkerframework.checker.nullness.qual.NonNull;
-import org.springframework.data.annotation.Transient;
+import org.bson.Document;
+import org.springframework.core.convert.ConversionService;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import org.springframework.data.mongodb.core.MappedDocument;
 import org.springframework.data.mongodb.core.MongoOperations;
 import org.springframework.data.mongodb.core.aggregation.Aggregation;
 import org.springframework.data.mongodb.core.aggregation.GroupOperation;
 import org.springframework.data.mongodb.core.aggregation.MatchOperation;
+import org.springframework.data.mongodb.core.convert.MongoConverter;
 import org.springframework.data.mongodb.core.index.Index;
 import org.springframework.data.mongodb.core.index.IndexInfo;
+import org.springframework.data.mongodb.core.mapping.MongoPersistentEntity;
+import org.springframework.data.mongodb.core.mapping.event.MongoMappingEvent;
 import org.springframework.data.mongodb.core.mapreduce.MapReduceResults;
 import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.data.mongodb.core.query.Update;
+import org.springframework.data.mongodb.core.query.UpdateDefinition;
 import org.springframework.data.mongodb.repository.query.MongoEntityInformation;
 import org.springframework.data.mongodb.repository.support.SimpleMongoRepository;
 import org.springframework.data.repository.NoRepositoryBean;
@@ -26,9 +31,11 @@ import java.io.Serializable;
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
 import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * @author maxuefeng
+ * @see org.springframework.data.mongodb.core.MongoTemplate
  * @since 2020/2/9
  */
 @NoRepositoryBean
@@ -40,7 +47,11 @@ public class BaseRepositoryImpl<T, ID extends Serializable>
 
     private final MongoEntityInformation<T, ID> entityInformation;
 
-    private List<Field> entityField;
+    private final MongoConverter mongoConverter;
+
+    private final EntityOperations operations;
+
+    private final ConversionService conversionService;
 
     public MongoEntityInformation<T, ID> getEntityInformation() {
         return this.entityInformation;
@@ -51,6 +62,9 @@ public class BaseRepositoryImpl<T, ID extends Serializable>
         super(metadata, mongoOperations);
         this.mongoOperations = mongoOperations;
         this.entityInformation = metadata;
+        this.mongoConverter = mongoOperations.getConverter();
+        this.conversionService = mongoConverter.getConversionService();
+        this.operations = new EntityOperations(this.mongoConverter.getMappingContext());
     }
 
     @Override
@@ -144,58 +158,55 @@ public class BaseRepositoryImpl<T, ID extends Serializable>
         return this.mongoOperations.indexOps(this.entityInformation.getJavaType()).getIndexInfo();
     }
 
+    /**
+     * 若当前对应的实体类为{@link org.springframework.data.annotation.Version}标识的字段
+     * 则需要使用乐观锁进行更新
+     * <p>
+     * 此方法不需要考虑event的发布
+     *
+     * @see org.springframework.data.mongodb.core.MongoTemplate#updateFirst(Query, Update, Class)
+     * @see org.springframework.data.mongodb.core.MongoTemplate#doUpdate(String, Query, UpdateDefinition, Class, boolean, boolean)
+     * @see org.springframework.data.mongodb.core.MongoTemplate#increaseVersionForUpdateIfNecessary(MongoPersistentEntity, UpdateDefinition)
+     * @see MongoMappingEvent
+     * @see org.springframework.data.annotation.Version
+     * @see org.springframework.data.mongodb.core.MongoTemplate#save(Object)
+     */
     @Override
     public <S extends T> UpdateResult update(S entity) {
         ID id = this.entityInformation.getId(entity);
         if (id == null) throw new IllegalArgumentException("BaseRepository update method id param is require");
 
-        Query query = new Query();
-        query.addCriteria(Criteria.where(entityInformation.getIdAttribute()).is(id));
+        // 是否是一个新的对象
+        EntityOperations.AdaptibleEntity<S> source = operations.forEntity(entity, conversionService);
+
+        // 是否属于版本控制的数据 基于CAS乐观锁进行控制
+        Query query;
+        if (source.isVersionedEntity()) {
+            if (source.getVersion() == null) throw new IllegalArgumentException("Entity version field must be setup");
+            // 此处不考虑version为空的情况 Spring data会自动处理null
+            query = source.getQueryForVersion();
+            // 此处没有必要手动增加版本号 spring已经提供了相应的操作
+            source.incrementVersion();
+        } else {
+            query = source.getByIdQuery();
+        }
 
         Update update = new Update();
-        List<Field> fields = getEntityField();
 
-        fields.forEach(field -> {
-            try {
-                Object value = field.get(entity);
-                if (value != null) update.set(getDBFieldName(field), value);
-            } catch (IllegalAccessException e) {
-                e.printStackTrace();
-                throw new RuntimeException(e.getMessage());
+        MappedDocument mapped = source.toMappedDocument(this.mongoConverter);
+        Document dbDoc = mapped.getDocument();
+
+        // 移除_class字段和_id字段，没有必要设置在Update中
+        dbDoc.remove("_class");
+        dbDoc.remove("_id");
+
+        dbDoc.forEach((dbFieldName, updateValue) -> {
+            if (updateValue != null) {
+                update.set(dbFieldName, updateValue);
             }
         });
+
         return mongoOperations.updateFirst(query, update, entityInformation.getJavaType());
     }
 
-    private List<Field> getEntityField() {
-        if (this.entityField == null) {
-            synchronized (this) {
-                this.entityField = getFields(this.entityInformation.getJavaType());
-            }
-        }
-        return this.entityField;
-    }
-
-    private List<Field> getFields(@NonNull Class<?> type) {
-        List<Field> fieldList = new ArrayList<>();
-        for (; type != Object.class; type = type.getSuperclass()) {
-            Field[] fields = type.getDeclaredFields();
-            for (Field field : fields) {
-                int mod = field.getModifiers();
-                if (Modifier.isStatic(mod)) continue;
-                Transient annotation = field.getDeclaredAnnotation(Transient.class);
-                if (annotation != null) continue;
-                field.setAccessible(true);
-                fieldList.add(field);
-            }
-        }
-        return fieldList;
-    }
-
-    private String getDBFieldName(Field field) {
-        org.springframework.data.mongodb.core.mapping.Field annotation
-                = field.getDeclaredAnnotation(org.springframework.data.mongodb.core.mapping.Field.class);
-        if (annotation != null) return annotation.value();
-        return field.getName();
-    }
 }
