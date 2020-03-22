@@ -1,5 +1,6 @@
 package io.jopen.springboot.plugin.mongo.repository;
 
+import com.mongodb.client.result.DeleteResult;
 import com.mongodb.client.result.UpdateResult;
 import org.springframework.data.domain.Example;
 import org.springframework.data.domain.Page;
@@ -132,5 +133,7 @@ public interface BaseService<ID, T> {
      * update an entity by id
      */
     <S extends T> UpdateResult update(S entity);
+
+    DeleteResult delete(Query query);
 
 }

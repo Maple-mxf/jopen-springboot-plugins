@@ -2,6 +2,7 @@ package io.jopen.springboot.plugin.mongo.repository;
 
 import com.google.common.collect.Lists;
 import com.mongodb.client.gridfs.model.GridFSFile;
+import com.mongodb.client.result.DeleteResult;
 import com.mongodb.client.result.UpdateResult;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Example;
@@ -181,7 +182,7 @@ public class BaseServiceImpl<ID extends Serializable, T, R extends BaseRepositor
 
     @Override
     public <S extends T> Stream<S> stream(Query query) {
-        Iterable<S>  iterable= this.list(query);
+        Iterable<S> iterable = this.list(query);
         return StreamSupport.stream(iterable.spliterator(), false);
     }
 
@@ -289,5 +290,10 @@ public class BaseServiceImpl<ID extends Serializable, T, R extends BaseRepositor
     @Override
     public <S extends T> UpdateResult update(S entity) {
         return repository.update(entity);
+    }
+
+    @Override
+    public DeleteResult delete(Query query) {
+        return repository.delete(query);
     }
 }

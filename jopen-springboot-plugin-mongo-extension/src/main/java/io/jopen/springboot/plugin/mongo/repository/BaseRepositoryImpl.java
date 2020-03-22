@@ -1,5 +1,6 @@
 package io.jopen.springboot.plugin.mongo.repository;
 
+import com.mongodb.client.result.DeleteResult;
 import com.mongodb.client.result.UpdateResult;
 import io.jopen.springboot.plugin.mongo.template.builder.AggregationBuilder;
 import org.bson.Document;
@@ -209,4 +210,25 @@ public class BaseRepositoryImpl<T, ID extends Serializable>
         return mongoOperations.updateFirst(query, update, entityInformation.getJavaType());
     }
 
+    @Override
+    public <S extends T> UpdateResult updateBatch(List<S> entities) {
+        if (entities == null || entities.size() == 0) {
+            return UpdateResult.acknowledged(0L, 0L, null);
+        }
+
+        entities.forEach(entity -> {
+
+        });
+        return null;
+    }
+
+    @Override
+    public <S extends T> UpdateResult update(S entity, Query query) {
+        return null;
+    }
+
+    @Override
+    public DeleteResult delete(Query query) {
+        return mongoOperations.remove(query, this.entityInformation.getJavaType());
+    }
 }

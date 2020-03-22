@@ -1,5 +1,6 @@
 package io.jopen.springboot.plugin.mongo.repository;
 
+import com.mongodb.client.result.DeleteResult;
 import com.mongodb.client.result.UpdateResult;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -62,4 +63,16 @@ public interface BaseRepository<T, ID extends Serializable> extends MongoReposit
      * update an entity by id
      */
     <S extends T> UpdateResult update(S entity);
+
+    /**
+     * batch update
+     */
+    <S extends T> UpdateResult updateBatch(List<S> entities);
+
+    /**
+     * update by query as conditions
+     */
+    <S extends T> UpdateResult update(S entity, Query query);
+
+    DeleteResult delete(Query query);
 }
