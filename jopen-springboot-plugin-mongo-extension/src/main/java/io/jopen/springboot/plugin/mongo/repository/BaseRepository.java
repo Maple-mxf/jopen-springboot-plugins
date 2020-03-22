@@ -64,6 +64,12 @@ public interface BaseRepository<T, ID extends Serializable> extends MongoReposit
      */
     <S extends T> UpdateResult update(S entity);
 
+
+    /**
+     * update an entity by id and version{@link org.springframework.data.annotation.Version}
+     */
+    <S extends T> UpdateResult updateByIdAndVersion(S entity);
+
     /**
      * batch update
      */

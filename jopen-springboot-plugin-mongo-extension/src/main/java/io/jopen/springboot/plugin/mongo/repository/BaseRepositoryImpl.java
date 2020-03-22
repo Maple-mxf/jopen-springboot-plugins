@@ -179,6 +179,32 @@ public class BaseRepositoryImpl<T, ID extends Serializable>
 
         // 是否是一个新的对象
         EntityOperations.AdaptibleEntity<S> source = operations.forEntity(entity, conversionService);
+        Query query = source.getByIdQuery();
+        Update update = new Update();
+
+        MappedDocument mapped = source.toMappedDocument(this.mongoConverter);
+        Document dbDoc = mapped.getDocument();
+
+        // 移除_class字段和_id字段，没有必要设置在Update中
+        dbDoc.remove("_class");
+        dbDoc.remove("_id");
+
+        dbDoc.forEach((dbFieldName, updateValue) -> {
+            if (updateValue != null) {
+                update.set(dbFieldName, updateValue);
+            }
+        });
+
+        return mongoOperations.updateFirst(query, update, entityInformation.getJavaType());
+    }
+
+    @Override
+    public <S extends T> UpdateResult updateByIdAndVersion(S entity) {
+        ID id = this.entityInformation.getId(entity);
+        if (id == null) throw new IllegalArgumentException("BaseRepository update method id param is require");
+
+        // 是否是一个新的对象
+        EntityOperations.AdaptibleEntity<S> source = operations.forEntity(entity, conversionService);
 
         // 是否属于版本控制的数据 基于CAS乐观锁进行控制
         Query query;

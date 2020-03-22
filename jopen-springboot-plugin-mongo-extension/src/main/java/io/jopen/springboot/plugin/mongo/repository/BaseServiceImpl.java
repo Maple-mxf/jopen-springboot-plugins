@@ -293,6 +293,11 @@ public class BaseServiceImpl<ID extends Serializable, T, R extends BaseRepositor
     }
 
     @Override
+    public <S extends T> UpdateResult updateByIdAndVersion(S entity) {
+        return repository.updateByIdAndVersion(entity);
+    }
+
+    @Override
     public DeleteResult delete(Query query) {
         return repository.delete(query);
     }
