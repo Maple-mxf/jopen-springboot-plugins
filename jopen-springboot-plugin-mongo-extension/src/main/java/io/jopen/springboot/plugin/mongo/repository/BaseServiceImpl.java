@@ -298,6 +298,11 @@ public class BaseServiceImpl<ID extends Serializable, T, R extends BaseRepositor
     }
 
     @Override
+    public <S extends T> UpdateResult updateBatch(List<S> entities) {
+        return repository.updateBatch(entities);
+    }
+
+    @Override
     public DeleteResult delete(Query query) {
         return repository.delete(query);
     }

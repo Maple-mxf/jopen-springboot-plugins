@@ -32,6 +32,7 @@ import java.io.Serializable;
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
 import java.util.*;
+import java.util.function.BinaryOperator;
 import java.util.stream.Collectors;
 
 /**
@@ -241,11 +242,11 @@ public class BaseRepositoryImpl<T, ID extends Serializable>
         if (entities == null || entities.size() == 0) {
             return UpdateResult.acknowledged(0L, 0L, null);
         }
-
-        entities.forEach(entity -> {
-
-        });
-        return null;
+        return entities.stream().map(this::update).reduce((updateResult, updateResult2) -> UpdateResult.acknowledged(
+                updateResult.getMatchedCount() + updateResult2.getMatchedCount(),
+                updateResult.getModifiedCount() + updateResult2.getModifiedCount(),
+                null
+        )).orElse(UpdateResult.unacknowledged());
     }
 
     @Override

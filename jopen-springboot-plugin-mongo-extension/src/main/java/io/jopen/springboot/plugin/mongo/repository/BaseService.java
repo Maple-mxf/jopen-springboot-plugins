@@ -139,6 +139,11 @@ public interface BaseService<ID, T> {
      */
     <S extends T> UpdateResult updateByIdAndVersion(S entity);
 
+    /**
+     * batch update
+     */
+    <S extends T> UpdateResult updateBatch(List<S> entities);
+
     DeleteResult delete(Query query);
 
 }
