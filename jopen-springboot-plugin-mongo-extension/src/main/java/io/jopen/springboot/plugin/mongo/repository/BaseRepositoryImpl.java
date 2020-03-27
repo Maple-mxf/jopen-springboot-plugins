@@ -29,11 +29,7 @@ import org.springframework.data.repository.NoRepositoryBean;
 import org.springframework.data.repository.support.PageableExecutionUtils;
 
 import java.io.Serializable;
-import java.lang.reflect.Field;
-import java.lang.reflect.Modifier;
 import java.util.*;
-import java.util.function.BinaryOperator;
-import java.util.stream.Collectors;
 
 /**
  * @author maxuefeng

@@ -21,9 +21,6 @@ public class RepositoryExtensionCodeGenerator {
 
     private final VelocityEngine ve = new VelocityEngine();
 
-
-    private final Class<?> entityClass;
-
     /**
      * service包名
      */
@@ -68,7 +65,6 @@ public class RepositoryExtensionCodeGenerator {
         ve.setProperty("classpath.resource.loader.class", ClasspathResourceLoader.class.getName());
         ve.init();
 
-        this.entityClass = entityClass;
         this.servicePackage = servicePackage;
         this.entityName = entityClass.getSimpleName();
         this.entityPackage = entityClass.getName();
