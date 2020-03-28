@@ -16,8 +16,8 @@ import java.io.Serializable;
 import static org.springframework.data.querydsl.QuerydslUtils.QUERY_DSL_PRESENT;
 
 /**
- * @see org.springframework.boot.autoconfigure.mongo.MongoAutoConfiguration
  * @author maxuefeng
+ * @see org.springframework.boot.autoconfigure.mongo.MongoAutoConfiguration
  * @since 2020/2/9
  */
 public class BaseMongoRepositoryFactoryBean<T extends MongoRepository<S, ID>, S, ID extends Serializable>
@@ -34,7 +34,7 @@ public class BaseMongoRepositoryFactoryBean<T extends MongoRepository<S, ID>, S,
 
     @Override
     protected RepositoryFactorySupport getFactoryInstance(MongoOperations operations) {
-        return super.getFactoryInstance(operations);
+        return new LCRRepositoryFactory<>(operations);
     }
 
     private static class LCRRepositoryFactory<S, ID extends Serializable> extends MongoRepositoryFactory {
@@ -50,22 +50,20 @@ public class BaseMongoRepositoryFactoryBean<T extends MongoRepository<S, ID>, S,
         protected Object getTargetRepository(RepositoryInformation information) {
             Class<?> repositoryInterface = information.getRepositoryInterface();
             MongoEntityInformation<?, Serializable> entityInformation = getEntityInformation(information.getDomainType());
-            /*if (isQueryDslRepository(repositoryInterface)) {
+            if (isQueryDslRepository(repositoryInterface)) {
                 return new QuerydslMongoRepository(entityInformation, mongoOperations);
             } else {
-                return new BaseRepositoryImpl<S, ID>((MongoEntityInformation<S, ID>) entityInformation, this.mongoOperations);
-            }*/
-            return new BaseRepositoryImpl<S, ID>((MongoEntityInformation<S, ID>) entityInformation, this.mongoOperations);
+                return new BaseRepositoryImpl<>((MongoEntityInformation<S, ID>) entityInformation, this.mongoOperations);
+            }
         }
 
 
         /**
-         * @see org.springframework.data.querydsl.QuerydslPredicateExecutor
-         * @see org.springframework.data.mongodb.repository.support.QuerydslMongoRepository
          * @param repositoryInterface
          * @return
+         * @see org.springframework.data.querydsl.QuerydslPredicateExecutor
+         * @see org.springframework.data.mongodb.repository.support.QuerydslMongoRepository
          */
-        @Deprecated
         private static boolean isQueryDslRepository(Class<?> repositoryInterface) {
             return QUERY_DSL_PRESENT && QuerydslPredicateExecutor.class.isAssignableFrom(repositoryInterface);
         }

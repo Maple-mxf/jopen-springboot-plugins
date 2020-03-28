@@ -11,6 +11,7 @@ import org.springframework.data.mongodb.core.index.IndexInfo;
 import org.springframework.data.mongodb.core.mapreduce.MapReduceResults;
 import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
+import org.springframework.data.mongodb.core.query.Update;
 import org.springframework.data.repository.NoRepositoryBean;
 import org.springframework.data.repository.core.EntityInformation;
 
@@ -143,6 +144,8 @@ public interface BaseService<ID, T> {
      * batch update
      */
     <S extends T> UpdateResult updateBatch(List<S> entities);
+
+    <S extends T> UpdateResult update(Query query, Update update);
 
     DeleteResult delete(Query query);
 

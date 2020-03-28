@@ -250,6 +250,11 @@ public class BaseRepositoryImpl<T, ID extends Serializable>
     }
 
     @Override
+    public <S extends T> UpdateResult update(Query query, Update update) {
+        return mongoOperations.updateMulti(query, update, this.entityInformation.getCollectionName());
+    }
+
+    @Override
     public <S extends T> UpdateResult update(S entity, Query query) {
         return null;
     }
