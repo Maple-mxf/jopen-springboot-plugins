@@ -228,6 +228,7 @@ public class BaseRepositoryImpl<T, ID extends Serializable>
         dbDoc.remove("_class");
         dbDoc.remove("_id");
 
+        if (dbDoc.size() == 0) return UpdateResult.unacknowledged();
         dbDoc.forEach((dbFieldName, updateValue) -> {
             if (updateValue != null) {
                 update.set(dbFieldName, updateValue);
