@@ -27,6 +27,7 @@
         <module>jopen-springboot-plugin-office</module>
         <module>jopen-springboot-plugin-email</module>
         <module>jopen-springboot-plugin-mongo-quartz</module>
+        <module>jopen=springboot-plugin-docker-deploy</module>
     </modules>
 
     <distributionManagement>
