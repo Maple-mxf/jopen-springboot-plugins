@@ -10,6 +10,7 @@ import org.springframework.data.mongodb.core.index.IndexInfo;
 import org.springframework.data.mongodb.core.mapreduce.MapReduceResults;
 import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
+import org.springframework.data.mongodb.core.query.Update;
 import org.springframework.data.mongodb.repository.MongoRepository;
 import org.springframework.data.mongodb.repository.query.MongoEntityInformation;
 import org.springframework.data.repository.NoRepositoryBean;
@@ -80,5 +81,14 @@ public interface BaseRepository<T, ID extends Serializable> extends MongoReposit
      */
     <S extends T> UpdateResult update(S entity, Query query);
 
+
+    <S extends T> UpdateResult update(Query query, Update update);
+
+    /**
+     * delete by Id
+     *
+     * @param query
+     * @return
+     */
     DeleteResult delete(Query query);
 }

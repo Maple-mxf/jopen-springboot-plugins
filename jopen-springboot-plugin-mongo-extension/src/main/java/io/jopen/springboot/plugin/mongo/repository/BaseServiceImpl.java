@@ -14,6 +14,7 @@ import org.springframework.data.mongodb.core.index.IndexInfo;
 import org.springframework.data.mongodb.core.mapreduce.MapReduceResults;
 import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
+import org.springframework.data.mongodb.core.query.Update;
 import org.springframework.data.mongodb.gridfs.GridFsTemplate;
 import org.springframework.data.mongodb.repository.query.MongoEntityInformation;
 import org.springframework.data.repository.NoRepositoryBean;
@@ -300,6 +301,11 @@ public class BaseServiceImpl<ID extends Serializable, T, R extends BaseRepositor
     @Override
     public <S extends T> UpdateResult updateBatch(List<S> entities) {
         return repository.updateBatch(entities);
+    }
+
+    @Override
+    public <S extends T> UpdateResult update(Query query, Update update) {
+        return repository.update(query, update);
     }
 
     @Override
