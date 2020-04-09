@@ -10,6 +10,7 @@ import java.util.Date;
 /**
  * @author maxuefeng
  */
+@Deprecated
 public class PatternDateSerializer extends JsonSerializer<Date> {
 
     /**

@@ -13,6 +13,7 @@ import java.time.LocalDateTime;
  *
  * @author maxuefeng
  */
+@Deprecated
 public class NumberLocalDateTimeDeserializer extends JsonDeserializer<LocalDateTime> {
 
     @Override

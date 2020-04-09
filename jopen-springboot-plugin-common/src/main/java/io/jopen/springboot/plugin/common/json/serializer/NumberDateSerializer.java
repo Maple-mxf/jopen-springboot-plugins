@@ -11,6 +11,7 @@ import java.util.Date;
  * @author maxuefeng
  * @see java.text.NumberFormat
  */
+@Deprecated
 public class NumberDateSerializer extends JsonSerializer<Date> {
 
     /**

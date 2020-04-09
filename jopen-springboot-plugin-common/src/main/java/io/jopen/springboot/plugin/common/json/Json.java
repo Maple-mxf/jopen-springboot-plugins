@@ -17,6 +17,7 @@ import java.util.Map;
  *
  * @author maxuefeng
  */
+@Deprecated
 public class Json extends JSONObject {
 
 

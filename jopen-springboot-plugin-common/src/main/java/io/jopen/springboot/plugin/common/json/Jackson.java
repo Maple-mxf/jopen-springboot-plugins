@@ -12,6 +12,7 @@ import java.util.Map;
  * @since 2020/1/26
  */
 public final
+@Deprecated
 class Jackson {
     private static final ObjectMapper MAPPER = new ObjectMapper();
 
