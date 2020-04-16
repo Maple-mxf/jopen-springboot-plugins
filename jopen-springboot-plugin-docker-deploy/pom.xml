@@ -9,7 +9,7 @@
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
-    <artifactId>jopen=springboot-plugin-docker-deploy</artifactId>
+    <artifactId>jopen-springboot-plugin-docker-deploy</artifactId>
 
     <dependencies>
         <dependency>

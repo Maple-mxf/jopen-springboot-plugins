@@ -1,6 +1,8 @@
 package io.jopen.springboot.plugin.quartz;
 
 import com.google.common.collect.ImmutableSet;
+import com.google.j2objc.annotations.LoopTranslation;
+import lombok.extern.slf4j.Slf4j;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.quartz.*;
@@ -20,6 +22,7 @@ import java.util.stream.Collectors;
  * @since 2020/1/31
  */
 @Component
+@Slf4j
 public final class JobMonitors {
 
     private Scheduler scheduler;
@@ -113,31 +116,44 @@ public final class JobMonitors {
         List<String> jobGroupNames = scheduler.getJobGroupNames();
         for (String groupName : jobGroupNames) {
             for (JobKey jobKey : scheduler.getJobKeys(GroupMatcher.jobGroupEquals(groupName))) {
-                JobDetail jobDetail = scheduler.getJobDetail(jobKey);
 
-                Class<? extends Job> jobClass = jobDetail.getJobClass();
-                boolean durable = jobDetail.isDurable();
-                JobDataMap jobDataMap = jobDetail.getJobDataMap();
-                boolean concurrentExecutionDisallowed = jobDetail.isConcurrentExectionDisallowed();
-                boolean persistJobDataAfterExecution = jobDetail.isPersistJobDataAfterExecution();
-                boolean requestsRecovery = jobDetail.requestsRecovery();
-
-                DistributeTaskInfo task = DistributeTaskInfo.builder()
-                        .name(jobKey.getName())
-                        .group(groupName)
-                        .desc(jobDetail.getDescription())
-                        .jobClass(jobClass)
-                        .durable(durable)
-                        .jobDataMap(jobDataMap)
-                        .concurrentExecutionDisallowed(concurrentExecutionDisallowed)
-                        .persistJobDataAfterExecution(persistJobDataAfterExecution)
-                        .requestsRecovery(requestsRecovery)
-                        .build();
-
-                if (isQueryTrigger) {
-                    task.setTriggerInfoList(this.jobTriggerInfoList(jobKey));
+                if (!scheduler.checkExists(jobKey)) {
+                    scheduler.deleteJob(jobKey);
+                    continue;
                 }
-                tasks.add(task);
+                JobDetail jobDetail;
+                try {
+                    jobDetail =  scheduler.getJobDetail(jobKey);
+
+                    Class<? extends Job> jobClass = jobDetail.getJobClass();
+                    boolean durable = jobDetail.isDurable();
+                    JobDataMap jobDataMap = jobDetail.getJobDataMap();
+                    boolean concurrentExecutionDisallowed = jobDetail.isConcurrentExectionDisallowed();
+                    boolean persistJobDataAfterExecution = jobDetail.isPersistJobDataAfterExecution();
+                    boolean requestsRecovery = jobDetail.requestsRecovery();
+
+                    DistributeTaskInfo task = DistributeTaskInfo.builder()
+                            .name(jobKey.getName())
+                            .group(groupName)
+                            .desc(jobDetail.getDescription())
+                            .jobClass(jobClass)
+                            .durable(durable)
+                            .jobDataMap(jobDataMap)
+                            .concurrentExecutionDisallowed(concurrentExecutionDisallowed)
+                            .persistJobDataAfterExecution(persistJobDataAfterExecution)
+                            .requestsRecovery(requestsRecovery)
+                            .build();
+
+                    if (isQueryTrigger) {
+                        task.setTriggerInfoList(this.jobTriggerInfoList(jobKey));
+                    }
+                    tasks.add(task);
+
+                } catch (Exception e) {
+                    e.printStackTrace();
+                    scheduler.deleteJob(jobKey);
+                    log.error("error msg {}   delete job {} ", e.getMessage(), jobKey);
+                }
             }
         }
         return tasks;

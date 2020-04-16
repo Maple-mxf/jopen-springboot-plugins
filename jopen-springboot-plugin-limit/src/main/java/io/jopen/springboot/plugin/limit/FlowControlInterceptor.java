@@ -122,11 +122,6 @@ public class FlowControlInterceptor extends BaseInterceptor implements CommandLi
 
     /**
      * {@link LimitKeyProducer#key(HttpServletRequest)} 此方法需要自定义  根据Request对象来生产key
-     *
-     * @param request
-     * @param response
-     * @param handler
-     * @return
      */
     @Override
     public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) {
@@ -152,39 +147,41 @@ public class FlowControlInterceptor extends BaseInterceptor implements CommandLi
     public void run(String... args) {
         this.keeper = SpringContainer.getBean(this.limitKeeperType);
         if (this.enablePullBlack) {
-            this.runLimitFunction = (request, response, handler, limiting) -> {
-                String limitKey = FlowControlInterceptor.this.limitKeyProducer.key(request);
-                // 黑名单操作
-                Keeper.Info info = keeper.solicitingOpinions(limitKey);
-                if (!info.isAllowAccess) {
-                    throw new RuntimeException(info.errMsg);
-                }
-                // 拼接key
-                HandlerMethod handlerMethod = (HandlerMethod) handler;
-                List<String> keys = Collections.singletonList(limitKey + "-" + handlerMethod.getMethod().getName() + "-" + limiting.key());
+            this.runLimitFunction =
+                    (request, response, handler, limiting) -> {
+                        String limitKey = FlowControlInterceptor.this.limitKeyProducer.key(request);
+                        // 黑名单操作
+                        Keeper.Info info = keeper.solicitingOpinions(limitKey);
+                        if (!info.isAllowAccess) {
+                            throw new LimitException(info.errMsg);
+                        }
+                        // 拼接key
+                        HandlerMethod handlerMethod = (HandlerMethod) handler;
+                        List<String> keys = Collections.singletonList(limitKey + "-" + handlerMethod.getMethod().getName() + "-" + limiting.key());
 
-                //  统计访问次数
-                Number r = redisTemplate.execute(limitScript, keys, limiting.count(), limiting.time());
-                if (r != null && r.intValue() != 0 && r.intValue() <= limiting.count()) {
-                    return true;
-                } else {
-                    // 记录违规操作
-                    keeper.recordViolation(limitKey);
-                    throw new RuntimeException("访问过于频繁，请稍后再试！");
-                }
-            };
+                        //  统计访问次数
+                        Number r = redisTemplate.execute(limitScript, keys, limiting.count(), limiting.time());
+                        if (r != null && r.intValue() != 0 && r.intValue() <= limiting.count()) {
+                            return true;
+                        } else {
+                            // 记录违规操作
+                            keeper.recordViolation(limitKey);
+                            throw new LimitException("访问过于频繁，请稍后再试！");
+                        }
+                    };
         } else {
-            this.runLimitFunction = (request, response, handler, limiting) -> {
-                String limitKey = FlowControlInterceptor.this.limitKeyProducer.key(request);
-                // 拼接key
-                HandlerMethod handlerMethod = (HandlerMethod) handler;
-                List<String> keys = Collections.singletonList(limitKey + "-" + handlerMethod.getMethod().getName() + "-" + limiting.key());
+            this.runLimitFunction =
+                    (request, response, handler, limiting) -> {
+                        String limitKey = FlowControlInterceptor.this.limitKeyProducer.key(request);
+                        // 拼接key
+                        HandlerMethod handlerMethod = (HandlerMethod) handler;
+                        List<String> keys = Collections.singletonList(limitKey + "-" + handlerMethod.getMethod().getName() + "-" + limiting.key());
 
-                //  统计访问次数
-                Number r = redisTemplate.execute(limitScript, keys, limiting.count(), limiting.time());
-                if (r != null && r.intValue() != 0 && r.intValue() <= limiting.count()) return true;
-                else throw new RuntimeException("访问过于频繁，请稍后再试！");
-            };
+                        //  统计访问次数
+                        Number r = redisTemplate.execute(limitScript, keys, limiting.count(), limiting.time());
+                        if (r != null && r.intValue() != 0 && r.intValue() <= limiting.count()) return true;
+                        else throw new LimitException("访问过于频繁，请稍后再试！");
+                    };
         }
     }
 }

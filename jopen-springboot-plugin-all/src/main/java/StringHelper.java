@@ -207,7 +207,7 @@ public class StringHelper {
 
     public static void main(String[] args) {
         System.err.println(randomString(20));
-        System.err.println(randomString(30));
+        System.err.println(randomString(40));
     }
 
     //首字母转小写
