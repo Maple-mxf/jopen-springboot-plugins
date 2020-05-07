@@ -26,4 +26,8 @@ public interface CredentialFunction {
             return Credential.INVALID_CREDENTIAL;
         }
     }
+
+    default RuntimeException ifErrorThrowing(String errorMsg) {
+        return new AuthException(errorMsg);
+    }
 }
