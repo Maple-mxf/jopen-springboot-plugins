@@ -2,6 +2,7 @@ package io.jopen.springboot.plugin.quartz;
 
 import com.google.common.collect.ImmutableMap;
 import io.jopen.springboot.plugin.common.ReflectUtil;
+import io.jopen.springboot.plugin.common.SpringContainer;
 import org.quartz.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -85,7 +86,8 @@ public class QuartzPluginConfiguration implements ImportAware {
             }
 
             for (Class<?> beanClass : jobBeanClass) {
-                JobBeanAgent jobBeanAgent = (JobBeanAgent) beanClass.newInstance();
+                // JobBeanAgent jobBeanAgent = (JobBeanAgent) beanClass.newInstance();
+                JobBeanAgent jobBeanAgent = (JobBeanAgent) SpringContainer.getBean(beanClass);
 
                 // build job detail
                 JobDetail jobDetail = JobBuilder.newJob((Class<? extends Job>) beanClass)

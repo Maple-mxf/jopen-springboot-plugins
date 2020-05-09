@@ -29,11 +29,7 @@ import org.springframework.data.repository.NoRepositoryBean;
 import org.springframework.data.repository.support.PageableExecutionUtils;
 
 import java.io.Serializable;
-import java.lang.reflect.Field;
-import java.lang.reflect.Modifier;
 import java.util.*;
-import java.util.function.BinaryOperator;
-import java.util.stream.Collectors;
 
 /**
  * @author maxuefeng
@@ -251,6 +247,7 @@ public class BaseRepositoryImpl<T, ID extends Serializable>
     }
 
     @Override
+    @Deprecated
     public <S extends T> UpdateResult update(Query query, Update update) {
         return mongoOperations.updateMulti(query, update, this.entityInformation.getCollectionName());
     }
@@ -263,5 +260,34 @@ public class BaseRepositoryImpl<T, ID extends Serializable>
     @Override
     public DeleteResult delete(Query query) {
         return mongoOperations.remove(query, this.entityInformation.getJavaType());
+    }
+
+    @Override
+    public <S extends T> UpdateResult updateById(ID id, S entity) {
+        if (id == null) throw new IllegalArgumentException("BaseRepository update method id param is require");
+        // 是否是一个新的对象
+        EntityOperations.AdaptibleEntity<S> source = operations.forEntity(entity, conversionService);
+
+        // 是否属于版本控制的数据 基于CAS乐观锁进行控制
+        Query query = new Query();
+        query.addCriteria(Criteria.where("_id").is(id));
+
+        Update update = new Update();
+
+        MappedDocument mapped = source.toMappedDocument(this.mongoConverter);
+        Document dbDoc = mapped.getDocument();
+
+        // 移除_class字段和_id字段，没有必要设置在Update中
+        dbDoc.remove("_class");
+        dbDoc.remove("_id");
+
+        if (dbDoc.size() == 0) return UpdateResult.unacknowledged();
+        dbDoc.forEach((dbFieldName, updateValue) -> {
+            if (updateValue != null) {
+                update.set(dbFieldName, updateValue);
+            }
+        });
+
+        return mongoOperations.updateFirst(query, update, entityInformation.getJavaType());
     }
 }

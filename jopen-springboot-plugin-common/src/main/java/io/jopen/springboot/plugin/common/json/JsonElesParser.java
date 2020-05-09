@@ -7,6 +7,7 @@ import com.alibaba.fastjson.JSONPath;
  * @see JSONPath
  * @since 2019-11-13
  */
+@Deprecated
 public class JsonElesParser {
 
     public static class ParamTypeException extends RuntimeException {

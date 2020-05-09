@@ -15,21 +15,6 @@ import java.util.Set;
  */
 public abstract class JobBeanAgent extends QuartzJobBean {
 
-//    protected State state;
-//
-//    public enum State {
-//        Started,
-//        Stopped,
-//        Abort
-//    }
-//
-//    public final void setState(State state) {
-//        this.state = state;
-//    }
-//
-//    public final State getState() {
-//        return this.state;
-//    }
 
     /**
      * @return jobKey  identity

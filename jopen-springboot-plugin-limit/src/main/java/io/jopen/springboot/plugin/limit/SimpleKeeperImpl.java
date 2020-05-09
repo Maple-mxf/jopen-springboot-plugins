@@ -64,7 +64,7 @@ public final class SimpleKeeperImpl implements Keeper {
             ViolationRecord violationRecord = (ViolationRecord) redisTemplate.opsForValue().get(redisKey);
             return Optional.ofNullable(violationRecord)
                     .map(vr -> vr.getViolationCount() >= this.exceedViolation())
-                    .orElse(false) ? Info.FORBIDDEN : Info.FORBIDDEN;
+                    .orElse(false) ? Info.FORBIDDEN : Info.NORMAL;
         } else {
             return Info.NORMAL;
         }

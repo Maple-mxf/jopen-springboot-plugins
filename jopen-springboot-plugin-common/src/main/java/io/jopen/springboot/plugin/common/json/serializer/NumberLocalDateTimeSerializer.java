@@ -11,6 +11,7 @@ import java.time.ZoneOffset;
 /**
  * @author maxuefeng
  */
+@Deprecated
 public class NumberLocalDateTimeSerializer extends JsonSerializer<LocalDateTime> {
 
     /**

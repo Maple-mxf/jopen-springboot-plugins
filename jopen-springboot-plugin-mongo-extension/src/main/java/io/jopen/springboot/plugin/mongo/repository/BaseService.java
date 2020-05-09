@@ -145,7 +145,10 @@ public interface BaseService<ID, T> {
      */
     <S extends T> UpdateResult updateBatch(List<S> entities);
 
+    @Deprecated
     <S extends T> UpdateResult update(Query query, Update update);
+
+    <S extends T> UpdateResult updateById(ID id,S entity);
 
     DeleteResult delete(Query query);
 

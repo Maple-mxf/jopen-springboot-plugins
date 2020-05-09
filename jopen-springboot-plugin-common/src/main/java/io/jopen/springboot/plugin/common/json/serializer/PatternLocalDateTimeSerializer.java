@@ -11,6 +11,7 @@ import java.time.LocalDateTime;
 /**
  * @author maxuefeng
  */
+@Deprecated
 public class PatternLocalDateTimeSerializer extends JsonSerializer<LocalDateTime> {
 
     /**

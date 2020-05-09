@@ -2,6 +2,7 @@ package io.jopen.springboot.plugin.auth;
 
 import io.jopen.springboot.plugin.annotation.cache.BaseInterceptor;
 import io.jopen.springboot.plugin.common.SpringContainer;
+import lombok.extern.slf4j.Slf4j;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.CommandLineRunner;
@@ -26,6 +27,7 @@ import static org.springframework.web.servlet.HandlerMapping.LOOKUP_PATH;
  *
  * @author maxuefeng
  */
+@Slf4j
 @Component
 public class AuthenticationInterceptor extends BaseInterceptor implements CommandLineRunner {
 
@@ -116,45 +118,48 @@ public class AuthenticationInterceptor extends BaseInterceptor implements Comman
                 String lookupPath = this.urlPathHelper.getLookupPathForRequest(request, LOOKUP_PATH);
 
                 // 按照开发者设定的规则进行检测身份Token信息
-                boolean passAuthentication = this.authRegistrations.stream()
-                        .filter(authRegistration -> {
-                            for (String pathPattern : authRegistration.getPathPatterns()) {
+                AuthRegistration authRegistration = this.authRegistrations.stream()
+                        .filter(t -> {
+                            for (String pathPattern : t.getPathPatterns()) {
                                 if (this.matches(pathPattern, lookupPath)) {
                                     return true;
                                 }
                             }
-                            throw new AuthException(verify.errMsg());
+                            return false;
                         })
-                        .anyMatch(authRegistration -> {
-                            CredentialFunction credentialFunction = authRegistration.getCredentialFunction();
-                            Credential credential = credentialFunction.apply(request);
-                            checkupCredential(request, credential, verify);
-                            authContext.setCredential(request, credential);
-                            return true;
-                        });
+                        .findAny()
+                        .orElse(null);
 
-                if (passAuthentication) {
-                    return true;
+                if (authRegistration == null) {
+                    throw new RuntimeException("服务器内部错误");
                 }
-                throw new AuthException(verify.errMsg());
+
+                CredentialFunction credentialFunction = authRegistration.getCredentialFunction();
+                Credential credential = credentialFunction.apply(request);
+                checkupCredential(credential, verify, credentialFunction);
+                authContext.setCredential(request, credential);
             }
             // 使用局部验证配置
             else {
                 Class<? extends CredentialFunction> credentialFunctionType = verify.credentialFunctionType();
+
                 // 如果无效  则需要抛出异常
-                com.google.common.base.Verify.verify(!credentialFunctionType.equals(CredentialFunction.EmptyCredentialFunction.class),
-                        "@Verify if not using global auth configuration;must be setup CredentialFunction implement Class");
+                if (CredentialFunction.EmptyCredentialFunction.class.equals(credentialFunctionType)) {
+                    log.error("@Verify if not using global auth configuration;must be setup CredentialFunction implement Class");
+                    throw new RuntimeException("服务器内部错误");
+                }
 
                 CredentialFunction credentialFunction;
                 try {
                     credentialFunction = SpringContainer.getBean(credentialFunctionType);
                 } catch (Exception ignored) {
-                    throw new AuthException("@Verify if not using global auth configuration;must be inject CredentialFunction bean in Spring Container");
+                    log.error("@Verify if not using global auth configuration;must be inject CredentialFunction bean in Spring Container");
+                    throw new RuntimeException("服务器内部错误");
                 }
 
                 // 获取凭证对象
                 Credential credential = credentialFunction.apply(request);
-                checkupCredential(request, credential, verify);
+                checkupCredential(credential, verify, credentialFunction);
                 authContext.setCredential(request, credential);
                 return true;
             }
@@ -162,8 +167,8 @@ public class AuthenticationInterceptor extends BaseInterceptor implements Comman
         return true;
     }
 
-    private void checkupCredential(HttpServletRequest request, Credential credential, Verify verify) {
-        if (!credential.getValid()) throw new AuthException("please login");
+    private void checkupCredential(Credential credential, Verify verify, CredentialFunction credentialFunction) {
+        if (!credential.getValid()) throw credentialFunction.ifErrorThrowing(verify.errMsg());
         // 没有设定角色 || 或者设定了*号  任何角色都可以访问
         String[] requireAllowRoles = verify.role();
         if (requireAllowRoles.length == 0 || "*".equals(requireAllowRoles[0])) return;
@@ -173,7 +178,7 @@ public class AuthenticationInterceptor extends BaseInterceptor implements Comman
         // 求两个数组的交集
         List<String> requireAllowRoleList = Arrays.asList(requireAllowRoles);
         if (Arrays.stream(roles).anyMatch(requireAllowRoleList::contains)) return;
-        throw new AuthException(verify.errMsg());
+        throw credentialFunction.ifErrorThrowing(verify.errMsg());
     }
 
     /**
@@ -190,6 +195,7 @@ public class AuthenticationInterceptor extends BaseInterceptor implements Comman
     @Override
     public void run(String... args) {
         AuthMetadata authMetadataBean = SpringContainer.getBean(authMetadataType);
+
         this.authRegistrations = authMetadataBean.setupAuthRules();
     }
 }

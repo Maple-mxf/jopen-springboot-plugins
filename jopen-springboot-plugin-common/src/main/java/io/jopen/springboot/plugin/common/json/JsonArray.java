@@ -10,6 +10,7 @@ import java.util.*;
  * @author maxuefeng
  * @see JSONArray
  */
+@Deprecated
 public final class JsonArray {
 
     private JsonArray() {

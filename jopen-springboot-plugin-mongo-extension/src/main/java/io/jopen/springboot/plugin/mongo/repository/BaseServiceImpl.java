@@ -303,9 +303,15 @@ public class BaseServiceImpl<ID extends Serializable, T, R extends BaseRepositor
         return repository.updateBatch(entities);
     }
 
+    @Deprecated
     @Override
     public <S extends T> UpdateResult update(Query query, Update update) {
         return repository.update(query, update);
+    }
+
+    @Override
+    public <S extends T> UpdateResult updateById(ID id, S entity) {
+        return repository.updateById(id, entity);
     }
 
     @Override
