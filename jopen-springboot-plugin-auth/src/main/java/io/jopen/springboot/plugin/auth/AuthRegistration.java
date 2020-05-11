@@ -4,7 +4,9 @@ import com.google.common.base.Strings;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.springframework.util.AntPathMatcher;
 
+import java.util.Arrays;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 import java.util.function.Function;
 
@@ -13,6 +15,11 @@ import java.util.function.Function;
  * @since 2020/2/4
  */
 public final class AuthRegistration {
+
+    /**
+     * 将数据编排为分组验证
+     */
+    private String group;
 
     /**
      * 规则路径
@@ -40,6 +47,10 @@ public final class AuthRegistration {
         return this.credentialFunction;
     }
 
+    public String getGroup() {
+        return this.group;
+    }
+
     public static Builder builder() {
         return new Builder();
     }
@@ -53,12 +64,24 @@ public final class AuthRegistration {
 
         /**
          * 添加需要认证路径
-         *
-         * @param authPath
-         * @return
          */
-        public Builder addAuthPathPattern(@NonNull String authPath) {
-            this.authRegistration.pathPatterns.add(authPath);
+        public Builder addAuthPathPattern(@NonNull String... authPaths) {
+            if (authPaths != null) {
+                authRegistration.pathPatterns.addAll(Arrays.asList(authPaths));
+            }
+            return this;
+        }
+
+        /**
+         * 添加需要认证路径
+         */
+        public Builder addAuthPathPattern(@NonNull List<String> authPaths) {
+            authRegistration.pathPatterns.addAll(authPaths);
+            return this;
+        }
+
+        public Builder group(@NonNull String group) {
+            this.authRegistration.group = group;
             return this;
         }
 
@@ -76,6 +99,7 @@ public final class AuthRegistration {
         /**
          * @return {@link AuthRegistration}
          * @see org.springframework.web.util.pattern.PathPattern
+         * @see Verify#group()
          */
         public AuthRegistration build() {
             // 检测Path
@@ -88,10 +112,12 @@ public final class AuthRegistration {
                     throw new RuntimeException(String.format("Path %s must be not null and must be start with '/' ", path));
                 }
             }
+            // 设置认证组
+            if (this.authRegistration.getGroup() == null) {
+                this.authRegistration.group = "Default";
+            }
             return this.authRegistration;
         }
     }
-
-
 }
 

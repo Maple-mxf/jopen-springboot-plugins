@@ -3,6 +3,7 @@ package io.jopen.springboot.plugin.idempotency;
 import org.springframework.context.annotation.Import;
 
 import java.lang.annotation.*;
+import java.util.function.Supplier;
 
 /**
  * @author maxuefeng
@@ -47,8 +48,8 @@ public @interface EnableJopenIdempotent {
 
     /**
      * 从什么位置获取幂等性token
-     *
-     * @return
      */
     TokenLocation idempotentTokenLocation() default TokenLocation.HEADER;
+
+    
 }

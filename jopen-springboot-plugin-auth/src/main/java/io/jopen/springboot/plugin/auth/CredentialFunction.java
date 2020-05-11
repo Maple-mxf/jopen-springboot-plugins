@@ -27,7 +27,10 @@ public interface CredentialFunction {
         }
     }
 
-    default RuntimeException ifErrorThrowing(String errorMsg) {
-        return new AuthException(errorMsg);
+    /**
+     * 自定义异常
+     */
+    default RuntimeException ifErrorThrowing() {
+        return new AuthException("access deny! because you has not access this api interface grant!");
     }
 }

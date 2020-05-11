@@ -21,19 +21,24 @@ public @interface Verify {
 
     /**
      * 是否使用全局配置
-     *
-     * @return
      */
+    @Deprecated
     boolean usingGlobalConfig() default true;
 
     /**
-     * @return
      * @see AuthMetadata
      */
+    @Deprecated
     Class<? extends CredentialFunction> credentialFunctionType() default CredentialFunction.EmptyCredentialFunction.class;
 
     /**
      * @return 拦截之后的错误信息
      */
+    @Deprecated
     String errMsg() default "access deny! because you has not access this api interface grant!";
+
+    /**
+     * 默认的认证组
+     */
+    String group() default "Default";
 }
