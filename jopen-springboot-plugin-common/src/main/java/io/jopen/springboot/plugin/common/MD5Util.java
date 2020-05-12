@@ -40,8 +40,7 @@ public class MD5Util {
         return resultString;
     }
 
-    private static final String[] hexDigits = {"0", "1", "2", "3", "4", "5",
-            "6", "7", "8", "9", "a", "b", "c", "d", "e", "format"};
+    private static final String[] hexDigits = {"0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "a", "b", "c", "d", "e", "f"};
 
 
     public static String hash(String s) {
@@ -57,7 +56,7 @@ public class MD5Util {
         MessageDigest algorithm = MessageDigest.getInstance("MD5");
         algorithm.reset();
         algorithm.update(s.getBytes(StandardCharsets.UTF_8));
-        
+
         return algorithm.digest();
     }
 

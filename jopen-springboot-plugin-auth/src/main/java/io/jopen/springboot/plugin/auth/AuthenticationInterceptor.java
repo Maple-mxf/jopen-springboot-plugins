@@ -1,7 +1,7 @@
 package io.jopen.springboot.plugin.auth;
 
+import com.google.common.collect.ImmutableMap;
 import io.jopen.springboot.plugin.annotation.cache.BaseInterceptor;
-import io.jopen.springboot.plugin.common.SpringContainer;
 import lombok.extern.slf4j.Slf4j;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -13,9 +13,8 @@ import org.springframework.web.util.UrlPathHelper;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.List;
+import java.util.*;
+import java.util.stream.Collectors;
 
 import static org.springframework.web.servlet.HandlerMapping.LOOKUP_PATH;
 
@@ -58,23 +57,19 @@ public class AuthenticationInterceptor extends BaseInterceptor implements Comman
     private String[] excludePathPatterns;
 
     /**
-     * 认证的规则
-     *
-     * @see AuthRegistration
+     * {@link ImmutableMap#entry(Object, Object)}
+     * key表示group
      */
-    private Collection<AuthRegistration> authRegistrations;
+    private ImmutableMap<String, List<AuthRegistration>> authGroup;
 
     /**
      *
      */
-    private Class<? extends AuthMetadata> authMetadataType;
-
     @Autowired
     private AuthContext authContext;
 
-    public void setAuthMetadataType(@NonNull Class<? extends AuthMetadata> authMetadataType) {
-        this.authMetadataType = authMetadataType;
-    }
+    @Autowired
+    private AuthMetadata authMetadata;
 
     public int getOrder() {
         return order;
@@ -112,63 +107,43 @@ public class AuthenticationInterceptor extends BaseInterceptor implements Comman
         Verify verify = super.getApiServiceAnnotation(Verify.class, handler);
         if (verify != null) {
 
-            // 使用全局验证配置
-            if (verify.usingGlobalConfig()) {
-                // 获取请求地址
-                String lookupPath = this.urlPathHelper.getLookupPathForRequest(request, LOOKUP_PATH);
+            List<AuthRegistration> authRules = this.authGroup.get(verify.group());
 
-                // 按照开发者设定的规则进行检测身份Token信息
-                AuthRegistration authRegistration = this.authRegistrations.stream()
-                        .filter(t -> {
-                            for (String pathPattern : t.getPathPatterns()) {
-                                if (this.matches(pathPattern, lookupPath)) {
-                                    return true;
-                                }
-                            }
-                            return false;
-                        })
-                        .findAny()
-                        .orElse(null);
-
-                if (authRegistration == null) {
-                    throw new RuntimeException("服务器内部错误");
-                }
-
-                CredentialFunction credentialFunction = authRegistration.getCredentialFunction();
-                Credential credential = credentialFunction.apply(request);
-                checkupCredential(credential, verify, credentialFunction);
-                authContext.setCredential(request, credential);
+            if (authRules == null || authRules.isEmpty()) {
+                throw new RuntimeException(String.format("Server config Error Please setup auth rules of group %s", verify.group()));
             }
-            // 使用局部验证配置
-            else {
-                Class<? extends CredentialFunction> credentialFunctionType = verify.credentialFunctionType();
 
-                // 如果无效  则需要抛出异常
-                if (CredentialFunction.EmptyCredentialFunction.class.equals(credentialFunctionType)) {
-                    log.error("@Verify if not using global auth configuration;must be setup CredentialFunction implement Class");
-                    throw new RuntimeException("服务器内部错误");
-                }
+            // 获取请求路径
+            String lookupPath = this.urlPathHelper.getLookupPathForRequest(request, LOOKUP_PATH);
 
-                CredentialFunction credentialFunction;
-                try {
-                    credentialFunction = SpringContainer.getBean(credentialFunctionType);
-                } catch (Exception ignored) {
-                    log.error("@Verify if not using global auth configuration;must be inject CredentialFunction bean in Spring Container");
-                    throw new RuntimeException("服务器内部错误");
-                }
+            AuthRegistration rule = authRules.stream()
+                    .filter(authRule -> authRule.getPathPatterns().stream().anyMatch(pathPattern -> this.matches(pathPattern, lookupPath)))
+                    .findFirst()
+                    .orElse(null);
 
-                // 获取凭证对象
-                Credential credential = credentialFunction.apply(request);
-                checkupCredential(credential, verify, credentialFunction);
-                authContext.setCredential(request, credential);
+
+            if (rule == null) {
+                log.error("Server config error Please setup AuthRegistration of lookup path {} group {}  ", lookupPath, verify.group());
                 return true;
             }
+
+            if (rule.getCredentialFunction() == null) {
+                log.error("Server config error Please setup CredentialFunction of lookup path {} group {}  ", lookupPath, verify.group());
+                return true;
+            }
+
+            CredentialFunction credentialFunction = rule.getCredentialFunction();
+
+            Credential credential = credentialFunction.apply(request);
+            checkupCredential(credential, verify, credentialFunction);
+
+            authContext.setCredential(request, credential);
         }
         return true;
     }
 
     private void checkupCredential(Credential credential, Verify verify, CredentialFunction credentialFunction) {
-        if (!credential.getValid()) throw credentialFunction.ifErrorThrowing(verify.errMsg());
+        if (!credential.getValid()) throw credentialFunction.ifErrorThrowing();
         // 没有设定角色 || 或者设定了*号  任何角色都可以访问
         String[] requireAllowRoles = verify.role();
         if (requireAllowRoles.length == 0 || "*".equals(requireAllowRoles[0])) return;
@@ -178,7 +153,7 @@ public class AuthenticationInterceptor extends BaseInterceptor implements Comman
         // 求两个数组的交集
         List<String> requireAllowRoleList = Arrays.asList(requireAllowRoles);
         if (Arrays.stream(roles).anyMatch(requireAllowRoleList::contains)) return;
-        throw credentialFunction.ifErrorThrowing(verify.errMsg());
+        throw credentialFunction.ifErrorThrowing();
     }
 
     /**
@@ -194,8 +169,14 @@ public class AuthenticationInterceptor extends BaseInterceptor implements Comman
 
     @Override
     public void run(String... args) {
-        AuthMetadata authMetadataBean = SpringContainer.getBean(authMetadataType);
+        Collection<AuthRegistration> authRules = this.authMetadata.setupAuthRules();
 
-        this.authRegistrations = authMetadataBean.setupAuthRules();
+        this.authGroup = ImmutableMap.copyOf(
+                authRules.stream()
+                        .collect(Collectors.groupingBy(AuthRegistration::getGroup)));
+
+        if (!authGroup.containsKey("Default")) {
+            throw new RuntimeException("Server auth config error please setup Default auth rule");
+        }
     }
 }

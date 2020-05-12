@@ -35,7 +35,6 @@ import java.util.concurrent.ExecutionException;
  * @see MapMaker#weakKeys()
  * @see Annotation#annotationType()
  */
-// @Component
 public class BaseInterceptor implements HandlerInterceptor {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(BaseInterceptor.class);

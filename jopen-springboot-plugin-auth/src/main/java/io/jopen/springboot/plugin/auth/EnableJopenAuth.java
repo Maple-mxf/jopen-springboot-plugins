@@ -38,9 +38,4 @@ public @interface EnableJopenAuth {
      * @see org.springframework.web.servlet.config.annotation.InterceptorRegistration#excludePathPatterns(String...)
      */
     String[] excludePathPattern() default {};
-
-    /**
-     * @return {@link AuthMetadata} 认证的元数据信息
-     */
-    Class<? extends AuthMetadata> authMetadataType();
 }

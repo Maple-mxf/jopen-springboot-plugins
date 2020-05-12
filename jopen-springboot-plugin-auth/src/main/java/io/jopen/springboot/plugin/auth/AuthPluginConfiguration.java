@@ -47,12 +47,10 @@ public class AuthPluginConfiguration implements ImportAware, WebMvcConfigurer {
         String[] pathPatterns = enableAuth.getStringArray("pathPatterns");
         String[] excludePathPatterns = enableAuth.getStringArray("excludePathPattern");
         int order = enableAuth.getNumber("order");
-        Class<? extends AuthMetadata> authMetadataType = enableAuth.getClass("authMetadataType");
 
         // 设置当前对象的拦截器的顺序
         this.authenticationInterceptor.setPathPatterns(pathPatterns);
         this.authenticationInterceptor.setExcludePathPatterns(excludePathPatterns);
         this.authenticationInterceptor.setOrder(order);
-        this.authenticationInterceptor.setAuthMetadataType(authMetadataType);
     }
 }
