@@ -123,7 +123,7 @@ public final class JobMonitors {
                 }
                 JobDetail jobDetail;
                 try {
-                    jobDetail =  scheduler.getJobDetail(jobKey);
+                    jobDetail = scheduler.getJobDetail(jobKey);
 
                     Class<? extends Job> jobClass = jobDetail.getJobClass();
                     boolean durable = jobDetail.isDurable();
@@ -306,6 +306,10 @@ public final class JobMonitors {
             date = scheduler.rescheduleJob(triggerKey, newTrigger);
         }
         return date;
+    }
+    
+    public boolean removeTrigger(@NonNull TriggerKey triggerKey) throws SchedulerException {
+        return scheduler.unscheduleJob(triggerKey);
     }
 
     /**

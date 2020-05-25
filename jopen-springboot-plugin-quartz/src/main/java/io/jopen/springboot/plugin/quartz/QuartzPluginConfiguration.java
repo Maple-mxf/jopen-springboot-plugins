@@ -86,7 +86,6 @@ public class QuartzPluginConfiguration implements ImportAware {
             }
 
             for (Class<?> beanClass : jobBeanClass) {
-                // JobBeanAgent jobBeanAgent = (JobBeanAgent) beanClass.newInstance();
                 JobBeanAgent jobBeanAgent = (JobBeanAgent) SpringContainer.getBean(beanClass);
 
                 // build job detail

@@ -41,4 +41,10 @@ public @interface Verify {
      * 默认的认证组
      */
     String group() default "Default";
+
+    /**
+     * 必须要求token
+     * 如果为false  则如果用户携带token 则
+     */
+    boolean require() default true;
 }
