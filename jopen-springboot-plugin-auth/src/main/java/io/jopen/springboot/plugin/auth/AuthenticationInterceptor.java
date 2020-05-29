@@ -107,6 +107,8 @@ public class AuthenticationInterceptor extends BaseInterceptor implements Comman
         Verify verify = super.getApiServiceAnnotation(Verify.class, handler);
         if (verify != null) {
 
+            boolean require = verify.require();
+
             List<AuthRegistration> authRules = this.authGroup.get(verify.group());
 
             if (authRules == null || authRules.isEmpty()) {
@@ -135,14 +137,19 @@ public class AuthenticationInterceptor extends BaseInterceptor implements Comman
             CredentialFunction credentialFunction = rule.getCredentialFunction();
 
             Credential credential = credentialFunction.apply(request);
-            checkupCredential(credential, verify, credentialFunction);
+
+            checkupCredential(credential, verify, credentialFunction, require);
 
             authContext.setCredential(request, credential);
         }
         return true;
     }
 
-    private void checkupCredential(Credential credential, Verify verify, CredentialFunction credentialFunction) {
+    private void checkupCredential(Credential credential,
+                                   Verify verify,
+                                   CredentialFunction credentialFunction,
+                                   boolean require
+    ) {
         if (!credential.getValid()) throw credentialFunction.ifErrorThrowing();
         // 没有设定角色 || 或者设定了*号  任何角色都可以访问
         String[] requireAllowRoles = verify.role();
@@ -153,7 +160,9 @@ public class AuthenticationInterceptor extends BaseInterceptor implements Comman
         // 求两个数组的交集
         List<String> requireAllowRoleList = Arrays.asList(requireAllowRoles);
         if (Arrays.stream(roles).anyMatch(requireAllowRoleList::contains)) return;
-        throw credentialFunction.ifErrorThrowing();
+
+        if (require)
+            throw credentialFunction.ifErrorThrowing();
     }
 
     /**
