@@ -2,6 +2,7 @@ package io.jopen.springboot.plugin.mongo.repository;
 
 import com.mongodb.client.result.DeleteResult;
 import com.mongodb.client.result.UpdateResult;
+import org.bson.Document;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
@@ -66,7 +67,7 @@ public interface BaseRepository<T, ID extends Serializable> extends MongoReposit
     <S extends T> UpdateResult update(S entity);
 
 
-    <S extends T> UpdateResult updateById(ID id,S entity);
+    <S extends T> UpdateResult updateById(ID id, S entity);
 
     /**
      * update an entity by id and version{@link org.springframework.data.annotation.Version}
@@ -89,9 +90,6 @@ public interface BaseRepository<T, ID extends Serializable> extends MongoReposit
 
     /**
      * delete by Id
-     *
-     * @param query
-     * @return
      */
     DeleteResult delete(Query query);
 }

@@ -21,11 +21,13 @@ import java.util.jar.JarFile;
  *
  * @author maxuefeng
  */
+@Deprecated
 public class ReflectUtil {
 
     /**
      * @param obj
      */
+    @Deprecated
     public static Map<String, Object> getObjFiledValues(Object obj) {
 
         if (obj == null) return new HashMap<>();
@@ -56,6 +58,7 @@ public class ReflectUtil {
      * @throws IllegalAccessException
      * @throws NoSuchFieldException
      */
+    @Deprecated
     public static Object getObjFiledValue(Object obj, String fieldName) throws NoSuchFieldException {
 
         if (obj == null || Strings.isNullOrEmpty(fieldName)) return null;
@@ -75,7 +78,7 @@ public class ReflectUtil {
         return filedValue;
     }
 
-
+    @Deprecated
     public static List<Class<?>> getClasses(String packageName) throws IOException {
         List<Class<?>> classes = Lists.newArrayList();
         boolean recursive = true;
@@ -132,7 +135,8 @@ public class ReflectUtil {
         }
     }
 
-    public static  void findAndAddClassesInPackageByFile(String packageName, String packagePath, boolean recursive, List<Class<?>> classes) {
+    @Deprecated
+    public static void findAndAddClassesInPackageByFile(String packageName, String packagePath, boolean recursive, List<Class<?>> classes) {
         File dir = new File(packagePath);
         if (dir.exists() && dir.isDirectory()) {
             File[] dirFiles = dir.listFiles((filex) -> recursive && filex.isDirectory() || filex.getName().endsWith(".class"));

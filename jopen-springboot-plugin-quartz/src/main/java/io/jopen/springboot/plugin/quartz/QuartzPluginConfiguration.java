@@ -4,6 +4,7 @@ import com.google.common.collect.ImmutableMap;
 import io.jopen.springboot.plugin.common.ReflectUtil;
 import io.jopen.springboot.plugin.common.SpringContainer;
 import org.quartz.*;
+import org.reflections.Reflections;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -59,19 +60,14 @@ public class QuartzPluginConfiguration implements ImportAware {
                     "@EnableJopenQuartz is not present on importing class " + importMetadata.getClassName());
         }
 
-        String[] packageArray = enableQuartz.getStringArray("jobBeanBasePackage");
+        String[] pas = enableQuartz.getStringArray("jobBeanBasePackage");
+        
         try {
-            List<Class<?>> jobBeanClass = Arrays.stream(packageArray)
+            List<Class<?>> types = Stream.of(pas)
                     .flatMap(pa -> {
-                        try {
-                            return ReflectUtil.getClasses(pa).stream();
-                        } catch (IOException e) {
-                            e.printStackTrace();
-                            return Stream.empty();
-                        }
+                        Reflections reflections = new Reflections(pa);
+                        return reflections.getSubTypesOf(JobBeanAgent.class).stream();
                     })
-                    .filter(Objects::nonNull)
-                    .filter(type -> type.getGenericSuperclass().equals(JobBeanAgent.class))
                     .collect(Collectors.toList());
 
             // 获取schedule存储的任务Job
@@ -79,13 +75,13 @@ public class QuartzPluginConfiguration implements ImportAware {
 
             // 检测不存在的任务 （可能由于开发者删除或者其他原因）
             List<DistributeTaskInfo> notExistJobClassList = taskList.stream()
-                    .filter(task -> !jobBeanClass.contains(task.getJobClass())).collect(Collectors.toList());
+                    .filter(task -> !types.contains(task.getJobClass())).collect(Collectors.toList());
             // 删除不存在的任务
             for (DistributeTaskInfo distributeTaskInfo : notExistJobClassList) {
                 scheduler.deleteJob(JobKey.jobKey(distributeTaskInfo.getName(), distributeTaskInfo.getGroup()));
             }
 
-            for (Class<?> beanClass : jobBeanClass) {
+            for (Class<?> beanClass : types) {
                 JobBeanAgent jobBeanAgent = (JobBeanAgent) SpringContainer.getBean(beanClass);
 
                 // build job detail
