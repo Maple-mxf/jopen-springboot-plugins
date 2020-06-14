@@ -9,6 +9,10 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
+
+import javax.servlet.http.HttpServletRequest;
 
 /**
  * @author maxuefeng
@@ -25,7 +29,12 @@ public class SendEmailTest {
     private JavaMailSender javaMailSender;
 
     @Test
-    public void testSend(){
+    @PostMapping
+    public void testSend(HttpServletRequest request) {
+
+
+        String method = request.getMethod();
+
         send();
     }
 

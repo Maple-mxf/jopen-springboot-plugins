@@ -4,6 +4,7 @@ import com.google.common.collect.Lists;
 import com.mongodb.client.gridfs.model.GridFSFile;
 import com.mongodb.client.result.DeleteResult;
 import com.mongodb.client.result.UpdateResult;
+import org.bson.Document;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Example;
 import org.springframework.data.domain.Page;
@@ -318,4 +319,5 @@ public class BaseServiceImpl<ID extends Serializable, T, R extends BaseRepositor
     public DeleteResult delete(Query query) {
         return repository.delete(query);
     }
+
 }

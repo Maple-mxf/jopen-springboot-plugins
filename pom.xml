@@ -2,7 +2,7 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0"
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
-		 
+
     <modelVersion>4.0.0</modelVersion>
 
     <artifactId>jopen-springboot-plugins</artifactId>
@@ -29,19 +29,20 @@
         <module>jopen-springboot-plugin-mongo-quartz</module>
         <module>jopen-springboot-plugin-docker-deploy</module>
         <module>jopen-springboot-plugin-security</module>
+        <module>standard</module>
     </modules>
 
     <distributionManagement>
         <repository>
             <id>rdc-releases</id>
-            <url>https://repo.rdc.aliyun.com/repository/121157-release-OFkD4F/</url>
+            <url>https://packages.aliyun.com/maven/repository/2004578-release-PjJPHH/</url>
         </repository>
         <snapshotRepository>
             <id>rdc-snapshots</id>
-            <url>https://repo.rdc.aliyun.com/repository/121157-snapshot-TEN1y1/</url>
+            <url>https://packages.aliyun.com/maven/repository/2004578-snapshot-vJewBJ/</url>
         </snapshotRepository>
     </distributionManagement>
-	    <dependencyManagement>
+    <dependencyManagement>
         <dependencies>
             <dependency>
                 <groupId>com.google.guava</groupId>
