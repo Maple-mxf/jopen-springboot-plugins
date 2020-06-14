@@ -4,7 +4,6 @@ import com.google.common.collect.ImmutableMap;
 import io.jopen.springboot.plugin.common.ReflectUtil;
 import io.jopen.springboot.plugin.common.SpringContainer;
 import org.quartz.*;
-import org.reflections.Reflections;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -61,13 +60,20 @@ public class QuartzPluginConfiguration implements ImportAware {
         }
 
         String[] pas = enableQuartz.getStringArray("jobBeanBasePackage");
-        
+
         try {
-            List<Class<?>> types = Stream.of(pas)
+            List<Class<?>> types = Arrays.stream(pas)
                     .flatMap(pa -> {
-                        Reflections reflections = new Reflections(pa);
-                        return reflections.getSubTypesOf(JobBeanAgent.class).stream();
+                        try {
+                            return ReflectUtil.getClasses(pa).stream();
+                        } catch (IOException e) {
+                            e.printStackTrace();
+                            return Stream.empty();
+                        }
                     })
+                    .filter(Objects::nonNull)
+                    .filter(t -> t.getGenericSuperclass() != null)
+                    .filter(type -> type.getGenericSuperclass().equals(JobBeanAgent.class))
                     .collect(Collectors.toList());
 
             // 获取schedule存储的任务Job

@@ -117,14 +117,13 @@ public class MongoDBJobStore implements JobStore, Constants {
             }
             assembler.checkinExecutor.start();
         }
-
         ensureIndexes();
     }
 
     private Properties loadProperties(ClassLoadHelper loadHelper) {
         Properties props = new Properties();
         File propFile = new File(PROPERTIES_FILE_NAME);
-        InputStream is = null;
+        InputStream is;
         // this roughly mimics how StdSchedulerFactory#initialize() fills properties in
         try {
             if (propFile.exists()) {

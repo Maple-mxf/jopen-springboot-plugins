@@ -28,7 +28,8 @@ public interface CredentialFunction {
     }
 
     /**
-     * 自定义异常
+     * 自定义异常  开发者可以覆盖当前Exception
+     * @overtide
      */
     default RuntimeException ifErrorThrowing() {
         return new AuthException("access deny! because you has not access this api interface grant!");

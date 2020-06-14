@@ -34,7 +34,7 @@ public class AuthenticationInterceptor extends BaseInterceptor implements Comman
      * @see PathMatcher
      * {@link AntPathMatcher}
      */
-    private PathMatcher pathMatcher = new AntPathMatcher("/");
+    private final PathMatcher pathMatcher = new AntPathMatcher("/");
 
     /**
      * 当前拦截器的顺序
@@ -49,7 +49,7 @@ public class AuthenticationInterceptor extends BaseInterceptor implements Comman
     /**
      * @see UrlPathHelper
      */
-    private UrlPathHelper urlPathHelper = new UrlPathHelper();
+    private final UrlPathHelper urlPathHelper = new UrlPathHelper();
 
     /**
      * 要排除的路径
