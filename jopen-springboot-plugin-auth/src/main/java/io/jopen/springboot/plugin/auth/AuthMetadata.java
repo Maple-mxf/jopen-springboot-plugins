@@ -27,6 +27,4 @@ public interface AuthMetadata {
             return ImmutableSet.of();
         }
     }
-
-
 }

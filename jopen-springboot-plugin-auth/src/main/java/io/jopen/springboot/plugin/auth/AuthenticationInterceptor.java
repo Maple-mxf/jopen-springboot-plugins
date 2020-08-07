@@ -20,11 +20,9 @@ import static org.springframework.web.servlet.HandlerMapping.LOOKUP_PATH;
 
 /**
  * 身份验证拦截器
- * {@link PathMatcher}
- * {@link AuthRegistration}
- * {@link CredentialFunction}
  *
  * @author maxuefeng
+ * @since 1.0
  */
 @Slf4j
 @Component
@@ -101,14 +99,11 @@ public class AuthenticationInterceptor extends BaseInterceptor implements Comman
      * @param handler  {@link org.springframework.web.method.HandlerMethod}
      * @return {@link Boolean} if true pass else throw a new RuntimeException
      * @see org.springframework.web.util.pattern.PathPattern
-     * @see org.springframework.web.util.pattern.PathPattern
      */
     public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) {
         Verify verify = super.getApiServiceAnnotation(Verify.class, handler);
         if (verify != null) {
-
             boolean require = verify.require();
-
             List<AuthRegistration> authRules = this.authGroup.get(verify.group());
 
             if (authRules == null || authRules.isEmpty()) {
@@ -167,7 +162,7 @@ public class AuthenticationInterceptor extends BaseInterceptor implements Comman
         // 求两个数组的交集
         List<String> requireAllowRoleList = Arrays.asList(requireAllowRoles);
         if (Arrays.stream(roles).anyMatch(requireAllowRoleList::contains)) return;
-        
+
         if (require)
             throw credentialFunction.ifErrorThrowing();
     }
