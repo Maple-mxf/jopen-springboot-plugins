@@ -82,6 +82,7 @@ public class QuartzPluginConfiguration implements ImportAware {
             // 检测不存在的任务 （可能由于开发者删除或者其他原因）
             List<DistributeTaskInfo> notExistJobClassList = taskList.stream()
                     .filter(task -> !types.contains(task.getJobClass())).collect(Collectors.toList());
+
             // 删除不存在的任务
             for (DistributeTaskInfo distributeTaskInfo : notExistJobClassList) {
                 scheduler.deleteJob(JobKey.jobKey(distributeTaskInfo.getName(), distributeTaskInfo.getGroup()));
@@ -102,7 +103,7 @@ public class QuartzPluginConfiguration implements ImportAware {
                 // if exist old job info in db prepare delete job info data
                 // after deleted , schedule the job by trigger
                 if (scheduler.checkExists(jobDetail.getKey())) {
-                    // 默认执行替换策略
+                    // 默认执行替换策略(TODO  毒瘤代码)
                     scheduler.scheduleJob(jobDetail, triggers, true);
                 } else {
                     scheduler.scheduleJobs(ImmutableMap.of(jobDetail, triggers), false);

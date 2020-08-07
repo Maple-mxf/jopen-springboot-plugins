@@ -96,6 +96,25 @@
             <artifactId>rxjava</artifactId>
             <version>3.0.3</version>
         </dependency>
+        <!-- https://mvnrepository.com/artifact/com.redislabs/lettusearch -->
+        <dependency>
+            <groupId>com.redislabs</groupId>
+            <artifactId>lettusearch</artifactId>
+            <version>2.3.0</version>
+        </dependency>
+
+        <dependency>
+            <groupId>com.aliyun</groupId>
+            <artifactId>aliyun-java-sdk-schedulerx2</artifactId>
+            <version>1.0.3</version>
+        </dependency>
+
+        <dependency>
+            <groupId>com.aliyun</groupId>
+            <artifactId>aliyun-java-sdk-core</artifactId>
+            <version>4.3.3</version>
+        </dependency>
+
     </dependencies>
 
     <build>
